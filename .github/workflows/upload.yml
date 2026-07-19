@@ -1,0 +1,40 @@
+name: 24x7 Video Upload Automation
+
+on:
+  schedule:
+    # Example US Peak Hours (Adjustable)
+    # 9:00 AM EST (13:00 UTC) and 5:00 PM EST (21:00 UTC)
+    - cron: '0 13 * * *'
+    - cron: '0 21 * * *'
+  workflow_dispatch: # Allows manual trigger for testing
+
+jobs:
+  upload_video:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install Dependencies
+        run: pip install -r requirements.txt
+
+      - name: Random Delay (1 to 10 minutes)
+        run: |
+          DELAY=$((1 + RANDOM % 10))
+          echo "Waiting for $DELAY minutes to simulate human behavior..."
+          sleep $((DELAY * 60))
+
+      - name: Run Automation Script
+        env:
+          GOOGLE_DRIVE_CREDENTIALS: ${{ secrets.GOOGLE_DRIVE_CREDENTIALS }}
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+          FACEBOOK_ACCESS_TOKEN: ${{ secrets.FACEBOOK_ACCESS_TOKEN }}
+          FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
+          YOUTUBE_CLIENT_SECRETS: ${{ secrets.YOUTUBE_CLIENT_SECRETS }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: python main.py
