@@ -73,37 +73,41 @@ class ContentManagerAgent:
 
     def mark_as_uploaded(self, video_id):
         print(f"Agent 1: Moving video to 'Uploaded' folder to prevent duplicate uploads...")
-        try:
-            parent_folder_id = "1H_a6FJWK7eh52vt0BXZbD-Zyx2_e9prU"
-            
-            # Search for 'Uploaded' folder
-            query = f"'{parent_folder_id}' in parents and name='Uploaded' and mimeType='application/vnd.google-apps.folder' and trashed=false"
-            results = self.drive_service.files().list(q=query, spaces='drive', fields='files(id, name)').execute()
-            items = results.get('files', [])
-            
-            if not items:
-                folder_metadata = {
-                    'name': 'Uploaded',
-                    'mimeType': 'application/vnd.google-apps.folder',
-                    'parents': [parent_folder_id]
-                }
-                folder = self.drive_service.files().create(body=folder_metadata, fields='id').execute()
-                uploaded_folder_id = folder.get('id')
-            else:
-                uploaded_folder_id = items[0].get('id')
+        
+        for attempt in range(3):
+            try:
+                parent_folder_id = "1H_a6FJWK7eh52vt0BXZbD-Zyx2_e9prU"
                 
-            file = self.drive_service.files().get(fileId=video_id, fields='parents').execute()
-            previous_parents = ",".join(file.get('parents', []))
-            
-            self.drive_service.files().update(
-                fileId=video_id,
-                addParents=uploaded_folder_id,
-                removeParents=previous_parents,
-                fields='id, parents'
-            ).execute()
-            print("Agent 1: Video successfully moved to 'Uploaded' folder.")
-        except Exception as e:
-            print(f"Agent 1: Warning: Failed to move video to 'Uploaded' folder: {e}")
+                # Search for 'Uploaded' folder
+                query = f"'{parent_folder_id}' in parents and name='Uploaded' and mimeType='application/vnd.google-apps.folder' and trashed=false"
+                results = self.drive_service.files().list(q=query, spaces='drive', fields='files(id, name)').execute()
+                items = results.get('files', [])
+                
+                if not items:
+                    folder_metadata = {
+                        'name': 'Uploaded',
+                        'mimeType': 'application/vnd.google-apps.folder',
+                        'parents': [parent_folder_id]
+                    }
+                    folder = self.drive_service.files().create(body=folder_metadata, fields='id').execute()
+                    uploaded_folder_id = folder.get('id')
+                else:
+                    uploaded_folder_id = items[0].get('id')
+                    
+                file = self.drive_service.files().get(fileId=video_id, fields='parents').execute()
+                previous_parents = ",".join(file.get('parents', []))
+                
+                self.drive_service.files().update(
+                    fileId=video_id,
+                    addParents=uploaded_folder_id,
+                    removeParents=previous_parents,
+                    fields='id, parents'
+                ).execute()
+                print("Agent 1: Video successfully moved to 'Uploaded' folder.")
+                break # Success, exit retry loop
+            except Exception as e:
+                print(f"Agent 1: Warning: Failed to move video to 'Uploaded' folder (Attempt {attempt + 1}/3): {e}")
+                time.sleep(2)
 
     def process(self):
         video_path, video_name, video_id = self.fetch_video()
