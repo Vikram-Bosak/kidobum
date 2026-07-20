@@ -3,9 +3,8 @@ name: kidobum agent
 on:
   schedule:
     # Example US Peak Hours (Adjustable)
-    # 9:00 AM EST (13:00 UTC) and 5:00 PM EST (21:00 UTC)
+    # 9:00 AM EST (13:00 UTC)
     - cron: '0 13 * * *'
-    - cron: '0 21 * * *'
   workflow_dispatch: # Allows manual trigger for testing
 
 jobs:
