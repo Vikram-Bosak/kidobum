@@ -47,7 +47,8 @@ class YouTubeUploadAgent:
             content = response.choices[0].message.content
             
             import re
-            match = re.search(r'\{.*\}', content, re.DOTALL)
+            # Use non-greedy match to extract just the first JSON object
+            match = re.search(r'\{.*?\}', content, re.DOTALL)
             if match:
                 json_str = match.group(0)
             else:
