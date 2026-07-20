@@ -27,7 +27,7 @@ def main():
 
     try:
         # Agent 1: Fetch and verify the video
-        video_path, video_name = agent1.process()
+        video_path, video_name, video_id = agent1.process()
         
         # Simulate user preparing to upload
         human_delay(1, 3, "Preparing to upload on YouTube")
@@ -46,6 +46,10 @@ def main():
         
         # Agent 4: Report
         agent4.send_report(yt_result, fb_result, video_name)
+        
+        # Move video to Uploaded folder if at least one upload succeeded
+        if yt_result.get('status') == 'success' or fb_result.get('status') == 'success':
+            agent1.mark_as_uploaded(video_id)
         
         print("Workflow completed successfully.")
             
