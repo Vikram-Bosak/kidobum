@@ -28,8 +28,9 @@ class ContentManagerAgent:
         if not self.drive_service:
             raise Exception("Google Drive service is not authenticated.")
 
-        # Query for mp4 files. In a real scenario, you'd pull from a specific folder.
-        query = "mimeType='video/mp4'"
+        # Query for mp4 files inside the specific user-provided folder.
+        folder_id = "1H_a6FJWK7eh52vt0BXZbD-Zyx2_e9prU"
+        query = f"'{folder_id}' in parents and mimeType='video/mp4' and trashed=false"
         results = self.drive_service.files().list(q=query, pageSize=10, fields="nextPageToken, files(id, name)").execute()
         items = results.get('files', [])
 
