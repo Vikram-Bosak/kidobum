@@ -42,8 +42,20 @@ class FacebookUploadAgent:
                 max_tokens=1024
             )
             content = response.choices[0].message.content
-            content = content.replace("```json", "").replace("```", "").strip()
-            metadata = json.loads(content)
+            
+            import re
+            match = re.search(r'\{.*\}', content, re.DOTALL)
+            if match:
+                json_str = match.group(0)
+            else:
+                json_str = content
+                
+            try:
+                metadata = json.loads(json_str)
+            except Exception as e:
+                print(f"Agent 3 (Facebook): JSON Parsing Error: {e}\nRaw LLM Content:\n{content}")
+                raise
+
             print("Agent 3 (Facebook): SEO Metadata Generated.")
             return metadata
         except Exception as e:
