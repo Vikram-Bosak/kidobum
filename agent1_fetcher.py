@@ -62,7 +62,7 @@ class ContentManagerAgent:
         fh.close()
             
         print(f"Agent 1: Successfully fetched video. Saved to {video_path}")
-        return video_path
+        return video_path, video_name
 
     def verify_format(self, video_path):
         print("Agent 1: Verifying video format (assuming 720p, 9:16 aspect ratio for now)...")
@@ -72,8 +72,8 @@ class ContentManagerAgent:
         return True
 
     def process(self):
-        video_path = self.fetch_video()
+        video_path, video_name = self.fetch_video()
         if self.verify_format(video_path):
-            return video_path
+            return video_path, video_name
         else:
             raise Exception("Video format verification failed.")
