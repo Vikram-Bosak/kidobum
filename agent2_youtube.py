@@ -46,14 +46,18 @@ class YouTubeUploadAgent:
             )
             content = response.choices[0].message.content
             
-            # Clean up markdown formatting if present
-            json_str = content.strip()
-            if json_str.startswith("```json"):
-                json_str = json_str[7:]
-            elif json_str.startswith("```"):
-                json_str = json_str[3:]
-            if json_str.endswith("```"):
-                json_str = json_str[:-3]
+            import re
+            json_str = content
+            # Try to extract from a markdown code block first
+            block_match = re.search(r'```(?:json)?\s*(.*?)\s*```', content, re.DOTALL)
+            if block_match:
+                json_str = block_match.group(1)
+            else:
+                # Fallback to extracting the outermost curly braces
+                brace_match = re.search(r'\{.*\}', content, re.DOTALL)
+                if brace_match:
+                    json_str = brace_match.group(0)
+                
             json_str = json_str.strip()
                 
             try:
