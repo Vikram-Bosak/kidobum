@@ -27,7 +27,7 @@ def main():
 
     try:
         # Agent 1: Fetch and verify the video
-        video_path = agent1.process()
+        video_path, video_name = agent1.process()
         
         # Simulate user preparing to upload
         human_delay(1, 3, "Preparing to upload on YouTube")
@@ -45,7 +45,7 @@ def main():
         human_delay(0.5, 1.5, "Finalizing and writing report")
         
         # Agent 4: Report
-        agent4.send_report(yt_result, fb_result)
+        agent4.send_report(yt_result, fb_result, video_name)
         
         print("Workflow completed successfully.")
             
