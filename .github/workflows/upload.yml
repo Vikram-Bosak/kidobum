@@ -1,4 +1,4 @@
-name: 24x7 Video Upload Automation
+name: kidobum agent
 
 on:
   schedule:
