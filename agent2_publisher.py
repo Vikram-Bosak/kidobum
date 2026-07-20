@@ -26,14 +26,20 @@ class SEOPublisherAgent:
                 "tags": ["Kids", "Gold", "kidobum", "Education", "Fun"]
             }
 
-        openai.api_key = self.llm_api_key
         try:
-            response = openai.chat.completions.create(
-                model="gpt-3.5-turbo",
+            client = openai.OpenAI(
+                base_url="https://integrate.api.nvidia.com/v1",
+                api_key=self.llm_api_key
+            )
+            response = client.chat.completions.create(
+                model="z-ai/glm-5.1",
                 messages=[
                     {"role": "system", "content": "You are an SEO expert for a kids YouTube channel named 'kidobum'."},
                     {"role": "user", "content": "Generate a JSON response with 'title', 'description', and 'tags' for a short vertical video about today's Gold Price."}
-                ]
+                ],
+                temperature=1,
+                top_p=1,
+                max_tokens=1024
             )
             content = response.choices[0].message.content
             metadata = json.loads(content)
