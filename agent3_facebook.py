@@ -32,7 +32,7 @@ class FacebookUploadAgent:
                 api_key=self.llm_api_key
             )
             response = client.chat.completions.create(
-                model="meta/llama-3.1-8b-instruct",
+                model="meta/llama-3.1-70b-instruct",
                 messages=[
                     {"role": "system", "content": "You are a Facebook Social Media Expert for a kids page named 'kidobum'. Your job is to create engaging captions for Facebook Reels. Emphasize engagement, use emojis, and add relevant hashtags."},
                     {"role": "user", "content": "Generate a JSON response with 'caption' (a string containing the full text and hashtags) for a short vertical video about today's Gold Price."}

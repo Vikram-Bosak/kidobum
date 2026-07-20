@@ -35,7 +35,7 @@ class YouTubeUploadAgent:
                 api_key=self.llm_api_key
             )
             response = client.chat.completions.create(
-                model="meta/llama-3.1-8b-instruct",
+                model="meta/llama-3.1-70b-instruct",
                 messages=[
                     {"role": "system", "content": "You are an expert YouTube SEO specialist for a kids channel named 'kidobum'. Focus on catchy titles, detailed kid-friendly descriptions, relevant tags and hashtags."},
                     {"role": "user", "content": "Generate a JSON response with 'title', 'description', and 'tags' (list of strings) for a short vertical video about today's Gold Price."}
