@@ -43,13 +43,15 @@ class FacebookUploadAgent:
             )
             content = response.choices[0].message.content
             
-            import re
-            # Use non-greedy match to extract just the first JSON object
-            match = re.search(r'\{.*?\}', content, re.DOTALL)
-            if match:
-                json_str = match.group(0)
-            else:
-                json_str = content
+            # Clean up markdown formatting if present
+            json_str = content.strip()
+            if json_str.startswith("```json"):
+                json_str = json_str[7:]
+            elif json_str.startswith("```"):
+                json_str = json_str[3:]
+            if json_str.endswith("```"):
+                json_str = json_str[:-3]
+            json_str = json_str.strip()
                 
             try:
                 metadata = json.loads(json_str)
