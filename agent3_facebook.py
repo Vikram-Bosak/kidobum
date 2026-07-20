@@ -90,9 +90,18 @@ class FacebookUploadAgent:
         self.random_delay(2, 5) # Delay between phases
 
         # 2. Upload Data
-        headers = {"Authorization": f"OAuth {self.fb_token}"}
+        file_size = os.path.getsize(video_path)
+        headers = {
+            "Authorization": f"OAuth {self.fb_token}",
+            "offset": "0",
+            "file_size": str(file_size)
+        }
         with open(video_path, 'rb') as f:
-            requests.post(upload_url, headers=headers, data=f.read())
+            upload_res = requests.post(upload_url, headers=headers, data=f.read())
+            
+        if upload_res.status_code != 200:
+            raise Exception(f"Facebook Video Data Transfer failed: HTTP {upload_res.status_code} - {upload_res.text}")
+        print("Agent 3 (Facebook): Video data transferred successfully.")
             
         self.random_delay(5, 12) # Delay to let FB process chunk
 
