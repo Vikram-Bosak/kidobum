@@ -17,7 +17,12 @@ class ContentManagerAgent:
             return None
         try:
             creds_dict = json.loads(self.creds_json)
-            creds = Credentials.from_authorized_user_info(creds_dict)
+            if creds_dict.get('type') == 'service_account':
+                from google.oauth2 import service_account
+                scopes = ['https://www.googleapis.com/auth/drive']
+                creds = service_account.Credentials.from_service_account_info(creds_dict, scopes=scopes)
+            else:
+                creds = Credentials.from_authorized_user_info(creds_dict)
             return build('drive', 'v3', credentials=creds)
         except Exception as e:
             print(f"Error authenticating Google Drive: {e}")
