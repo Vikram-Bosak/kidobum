@@ -33,13 +33,13 @@ def main():
         human_delay(1, 3, "Preparing to upload on YouTube")
         
         # Agent 2: YouTube Upload
-        yt_result = agent2.process(video_path)
+        yt_result = agent2.process(video_path, video_name)
         
         # Simulate user taking a break / switching tabs
         human_delay(2, 5, "Switching to Facebook")
         
         # Agent 3: Facebook Upload
-        fb_result = agent3.process(video_path)
+        fb_result = agent3.process(video_path, video_name)
         
         # Simulate final checks
         human_delay(0.5, 1.5, "Finalizing and writing report")

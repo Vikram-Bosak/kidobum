@@ -17,16 +17,16 @@ class YouTubeUploadAgent:
         print(f"Agent 2 (YouTube): Simulating human behavior with a delay of {delay:.2f} seconds...")
         time.sleep(delay)
 
-    def generate_seo_metadata(self):
-        print("Agent 2 (YouTube): Generating SEO Metadata using OpenAI LLM...")
+    def generate_seo_metadata(self, video_name):
+        print(f"Agent 2 (YouTube): Generating SEO Metadata using OpenAI LLM for video '{video_name}'...")
         self.random_delay(2, 5) # Thinking delay
         
         if not self.llm_api_key:
             print("Warning: LLM_API_KEY not found. Using fallback metadata.")
             return {
-                "title": "Gold Price Adventure for Kids! 🪙✨",
-                "description": "Learn about the shiny gold price today! Subscribe to kidobum for more fun videos! #Gold #Kids #Learning",
-                "tags": ["Kids", "Gold", "kidobum", "Education", "Fun"]
+                "title": f"Kidobum Adventures: {os.path.splitext(video_name)[0]} ✨",
+                "description": f"Check out this fun video about {os.path.splitext(video_name)[0]}! Subscribe to kidobum for more fun videos! #Kids #Learning #kidobum",
+                "tags": ["Kids", "kidobum", "Education", "Fun", "Nursery Rhymes"]
             }
 
         try:
@@ -37,8 +37,8 @@ class YouTubeUploadAgent:
             response = client.chat.completions.create(
                 model="meta/llama-3.1-70b-instruct",
                 messages=[
-                    {"role": "system", "content": "You are an expert YouTube SEO specialist for a kids channel named 'kidobum'. Focus on catchy titles, detailed kid-friendly descriptions, relevant tags and hashtags."},
-                    {"role": "user", "content": "Generate a JSON response with 'title', 'description', and 'tags' (list of strings) for a short vertical video about today's Gold Price."}
+                    {"role": "system", "content": "You are an expert YouTube SEO specialist for a kids channel named 'kidobum'. Focus on catchy titles, detailed kid-friendly descriptions, relevant tags, and hashtags. VERY IMPORTANT: You must generate completely unique content every time based strictly on the actual video file name provided."},
+                    {"role": "user", "content": f"The video file name is '{video_name}'. Read this file name, understand the specific topic of the video, and generate completely unique, brand new SEO. Do NOT use previously generated titles like 'GOLD RUSH!'. Generate a JSON response with exactly 'title', 'description' (including #hashtags), and 'tags' (list of strings) for a short vertical video about the exact topic inferred from the file name."}
                 ],
                 temperature=0.8,
                 top_p=1,
@@ -110,9 +110,9 @@ class YouTubeUploadAgent:
         print(f"Agent 2 (YouTube): Uploaded to YouTube! URL: {yt_url}")
         return yt_url
 
-    def process(self, video_path):
+    def process(self, video_path, video_name):
         try:
-            metadata = self.generate_seo_metadata()
+            metadata = self.generate_seo_metadata(video_name)
             yt_url = self.upload_to_youtube(video_path, metadata)
             return {"status": "success", "url": yt_url, "metadata": metadata}
         except Exception as e:
