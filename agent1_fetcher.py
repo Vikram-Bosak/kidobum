@@ -51,7 +51,10 @@ class ContentManagerAgent:
         done = False
         while done is False:
             status, done = downloader.next_chunk()
-            print(f"Download {int(status.progress() * 100)}%.")
+            if status:
+                print(f"Download {int(status.progress() * 100)}%.")
+                
+        fh.close()
             
         print(f"Agent 1: Successfully fetched video. Saved to {video_path}")
         return video_path
