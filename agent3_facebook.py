@@ -58,7 +58,7 @@ class FacebookUploadAgent:
             json_str = json_str.strip()
                 
             try:
-                metadata = json.loads(json_str)
+                metadata = json.loads(json_str, strict=False)
             except Exception as e:
                 print(f"Agent 3 (Facebook): JSON Parsing Error: {e}\nRaw LLM Content:\n{content}")
                 raise

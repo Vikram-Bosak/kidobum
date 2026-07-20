@@ -61,7 +61,7 @@ class YouTubeUploadAgent:
             json_str = json_str.strip()
                 
             try:
-                metadata = json.loads(json_str)
+                metadata = json.loads(json_str, strict=False)
             except Exception as e:
                 print(f"Agent 2 (YouTube): JSON Parsing Error: {e}\nRaw LLM Content:\n{content}")
                 raise
