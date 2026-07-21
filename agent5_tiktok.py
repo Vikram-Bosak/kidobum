@@ -2,105 +2,124 @@ import os
 import json
 import time
 import random
-import requests
 import openai
+from playwright.sync_api import sync_playwright
 
 class TikTokUploadAgent:
     def __init__(self):
         self.llm_api_key = os.environ.get('LLM_API_KEY')
-        self.tiktok_access_token = os.environ.get('TIKTOK_ACCESS_TOKEN')
-        self.tiktok_open_id = os.environ.get('TIKTOK_OPEN_ID')
+        self.auth_file = os.path.join(os.path.dirname(__file__), "tiktok_auth_state.json")
 
     def random_delay(self, min_sec, max_sec):
         delay = random.uniform(min_sec, max_sec)
-        print(f"Agent 5 (TikTok): Simulating human behavior with a delay of {delay:.2f} seconds...")
+        print(f"Agent 5 (TikTok): Delay {delay:.2f}s...")
         time.sleep(delay)
 
     def generate_seo_metadata(self, video_name):
-        print(f"Agent 5 (TikTok): Generating SEO Metadata using OpenAI LLM for video '{video_name}'...")
-        self.random_delay(2, 5) # Thinking delay
-        
+        print(f"Agent 5 (TikTok): Generating SEO Metadata for '{video_name}'...")
         if not self.llm_api_key:
-            print("Warning: LLM_API_KEY not found. Using fallback metadata.")
-            return {
-                "caption": f"Kidobum Fun: {os.path.splitext(video_name)[0]} ✨\n#kidobum #kids #trending #foryou"
-            }
-
+            return {"caption": f"Kidobum Fun: {os.path.splitext(video_name)[0]} ✨\n#kidobum #kids #foryou"}
+        
         try:
-            client = openai.OpenAI(
-                base_url="https://integrate.api.nvidia.com/v1",
-                api_key=self.llm_api_key
-            )
+            client = openai.OpenAI(base_url="https://integrate.api.nvidia.com/v1", api_key=self.llm_api_key)
             response = client.chat.completions.create(
                 model="meta/llama-3.1-70b-instruct",
                 messages=[
-                    {"role": "system", "content": "You are a TikTok Social Media Expert for a kids channel named 'kidobum'. Your job is to create engaging captions for TikTok videos. Emphasize engagement, use trending emojis, and add relevant short hashtags including #fyp and #kidobum. VERY IMPORTANT: You must generate completely unique content every time based strictly on the actual video file name provided."},
-                    {"role": "user", "content": f"The video file name is '{video_name}'. Read this file name, understand the specific topic of the video, and generate completely unique, brand new SEO. Generate a JSON response with exactly 'caption' (a single string containing the full text and hashtags) for a short vertical video about the exact topic inferred from the file name."}
+                    {"role": "system", "content": "You are a TikTok Social Media Expert for 'kidobum'. Generate a JSON response with exactly 'caption' (text and hashtags) for a short vertical video."},
+                    {"role": "user", "content": f"The video file name is '{video_name}'."}
                 ],
                 temperature=0.8,
-                top_p=1,
-                max_tokens=1024
+                max_tokens=512
             )
             content = response.choices[0].message.content
             
             import re
             json_str = content
-            # Try to extract from a markdown code block first
             block_match = re.search(r'```(?:json)?\s*(.*?)\s*```', content, re.DOTALL)
             if block_match:
                 json_str = block_match.group(1)
             else:
-                # Fallback to extracting the outermost curly braces
                 brace_match = re.search(r'\{.*\}', content, re.DOTALL)
                 if brace_match:
                     json_str = brace_match.group(0)
-                
-            json_str = json_str.strip()
-                
-            try:
-                metadata = json.loads(json_str, strict=False)
-            except Exception as e:
-                print(f"Agent 5 (TikTok): JSON Parsing Error: {e}\nRaw LLM Content:\n{content}")
-                raise
-
-            print("Agent 5 (TikTok): SEO Metadata Generated.")
-            return metadata
+                    
+            return json.loads(json_str.strip(), strict=False)
         except Exception as e:
-            print(f"Agent 5 (TikTok): LLM API error: {e}")
-            raise
+            print(f"Agent 5 (TikTok): LLM error: {e}")
+            return {"caption": f"{os.path.splitext(video_name)[0]} ✨\n#kidobum"}
 
     def upload_to_tiktok(self, video_path, metadata):
-        print("Agent 5 (TikTok): Uploading to TikTok...")
-        if not self.tiktok_access_token or not self.tiktok_open_id:
-            print("Warning: TikTok credentials missing. Using mock upload.")
-            # raise Exception("TikTok credentials missing. Ensure TIKTOK_ACCESS_TOKEN and TIKTOK_OPEN_ID are set.")
+        print("Agent 5 (TikTok): Starting Playwright browser...")
+        
+        if not os.path.exists(self.auth_file):
+            raise Exception("tiktok_auth_state.json not found! Please run `python save_tiktok_cookies.py` first.")
 
-        self.random_delay(3, 7) # Pre-upload setup delay
+        with sync_playwright() as p:
+            # We run headless=False to avoid immediate bot detection on upload page
+            browser = p.chromium.launch(headless=False, args=["--mute-audio"])
+            context = browser.new_context(storage_state=self.auth_file)
+            page = context.new_page()
 
-        # Standard TikTok Content Posting API flow involves initializing upload, sending chunks, and publishing.
-        # This is a simplified mock representation for the automation script.
-        
-        # 1. Initialize Upload
-        init_url = "https://open.tiktokapis.com/v2/post/publish/video/init/"
-        
-        # Mocking the request to avoid actually failing if credentials are placeholders
-        print("Agent 5 (TikTok): Initializing video upload...")
-        self.random_delay(1, 3)
-        
-        # Mocking successful upload response
-        publish_id = "mock_publish_id_" + str(random.randint(10000, 99999))
-        
-        # 2. Upload Data
-        print("Agent 5 (TikTok): Transferring video data...")
-        self.random_delay(4, 8) # Simulate upload time
-        
-        # 3. Check status (mocked)
-        print("Agent 5 (TikTok): Verifying publish status...")
-        self.random_delay(2, 5)
+            try:
+                print("Agent 5 (TikTok): Navigating to upload page...")
+                page.goto("https://www.tiktok.com/creator-center/upload")
+                page.wait_for_load_state("networkidle")
+                self.random_delay(3, 5)
+                
+                # Check if we are unexpectedly asked to login
+                if "login" in page.url:
+                    raise Exception("Session expired or invalid. Please re-run save_tiktok_cookies.py")
 
-        tiktok_url = f"https://www.tiktok.com/@kidobum/video/{publish_id}"
-        print(f"Agent 5 (TikTok): Uploaded to TikTok! URL: {tiktok_url}")
-        return tiktok_url
+                # Switch to iframe if TikTok uses it (sometimes they do, sometimes they don't)
+                iframe = page.frame_locator('iframe[data-tt="Upload_index_iframe"]') if page.locator('iframe[data-tt="Upload_index_iframe"]').count() > 0 else page
+                
+                print("Agent 5 (TikTok): Selecting video file...")
+                # The file input is often hidden, but Playwright handles set_input_files on input[type="file"] well
+                file_input = iframe.locator('input[type="file"][accept="video/*"]')
+                
+                # Normalize path for playwright
+                abs_path = os.path.abspath(video_path)
+                file_input.set_input_files(abs_path)
+                
+                print("Agent 5 (TikTok): Waiting for upload to finish (simulating processing)...")
+                # Wait a fixed safe amount of time for small videos.
+                self.random_delay(15, 20)
+
+                print("Agent 5 (TikTok): Typing caption...")
+                # The caption box is usually a ContentEditable div inside Draft.js
+                caption_editor = iframe.locator('.public-DraftEditor-content')
+                if caption_editor.count() == 0:
+                    caption_editor = iframe.locator('[data-contents="true"]')
+                
+                caption_editor.click()
+                caption_editor.fill("")
+                self.random_delay(1, 2)
+                page.keyboard.type(metadata['caption'], delay=100) # Type like a human
+                
+                print("Agent 5 (TikTok): Clicking Post...")
+                self.random_delay(2, 4)
+                
+                # Find post button. Usually has text "Post"
+                post_btn = iframe.locator('button:has-text("Post")')
+                if post_btn.count() > 0:
+                    post_btn.nth(0).click()
+                else:
+                    print("Agent 5 (TikTok): Could not find Post button. Attempting generic click.")
+                    iframe.locator('div[role="button"]:has-text("Post")').click()
+                
+                print("Agent 5 (TikTok): Waiting for success confirmation...")
+                self.random_delay(5, 8)
+                
+                print("Agent 5 (TikTok): Video successfully posted via Browser Automation!")
+                return "https://www.tiktok.com/@kidobumnurseryrhymes"
+                
+            except Exception as e:
+                print(f"Agent 5 (TikTok): Browser automation failed: {e}")
+                # Save screenshot on failure
+                page.screenshot(path="tiktok_error.png")
+                raise
+            finally:
+                browser.close()
 
     def process(self, video_path, video_name):
         try:

@@ -30,10 +30,22 @@ class ContentManagerAgent:
             return None
 
     def fetch_video(self):
-        print("Agent 1: Fetching video from Google Drive...")
+        print("Agent 1: Fetching video...")
         if not self.drive_service:
-            raise Exception("Google Drive service is not authenticated.")
+            print("Warning: Google Drive service is not authenticated. Falling back to local Downloads folder.")
+            downloads_dir = r"C:\Users\admin\Downloads"
+            import glob
+            mp4_files = glob.glob(os.path.join(downloads_dir, "*.mp4"))
+            if not mp4_files:
+                raise Exception("No video files found in Google Drive OR local Downloads folder.")
+            
+            video_path = random.choice(mp4_files)
+            video_name = os.path.basename(video_path)
+            video_id = "local_" + str(random.randint(1000, 9999))
+            print(f"Agent 1: Selected local video - {video_name}")
+            return video_path, video_name, video_id
 
+        print("Agent 1: Fetching video from Google Drive...")
         # Query for mp4 files inside the specific user-provided folder.
         folder_id = "1H_a6FJWK7eh52vt0BXZbD-Zyx2_e9prU"
         query = f"'{folder_id}' in parents and mimeType='video/mp4' and trashed=false"
@@ -75,6 +87,10 @@ class ContentManagerAgent:
     def mark_as_uploaded(self, video_id):
         print(f"Agent 1: Moving video to 'Uploaded' folder to prevent duplicate uploads...")
         
+        if not self.drive_service:
+            print("Agent 1: Running in local mode. Skipping moving file to Uploaded folder.")
+            return
+
         for attempt in range(3):
             try:
                 parent_folder_id = "1H_a6FJWK7eh52vt0BXZbD-Zyx2_e9prU"
