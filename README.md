@@ -1,7 +1,13 @@
 # kidobum - 24x7 Video Upload Automation
 
-Automated video uploading pipeline for the `kidobum` channel.
+Automated video uploading pipeline for the **[KidoBum Nursery Rhymes](https://www.youtube.com/@KidoBumNurseryRhymes/featured)** channel.
 
+## 🌟 Channel Achievements
+- **YouTube:** Monetized with over **2,000 Subscribers**! 🎉 ([Visit Channel](https://www.youtube.com/@KidoBumNurseryRhymes/featured))
+- **Facebook:** Growing strong with **5,000 Followers**! 🎉 ([Visit Page](https://www.facebook.com/KidoBum))
+- **TikTok:** Automated publishing coming soon!
+
+---
 ## 🚀 Setup & Secrets Configuration
 
 To make this GitHub Action work, you need to configure several Repository Secrets in GitHub. The most common error is configuring the Google/YouTube credentials incorrectly.
