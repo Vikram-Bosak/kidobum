@@ -9,7 +9,7 @@ def main():
     
     print(f"Testing TikTok upload with video: {video_name}")
     try:
-        result = agent.process(video_path, video_name)
+        result = agent.process(video_path)
         print("\nTest Result:", result)
     except Exception as e:
         print(f"\nTest Failed: {e}")

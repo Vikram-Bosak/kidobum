@@ -1,7 +1,7 @@
 import os
 import json
 import time
-from tiktok_uploader.upload import upload_video
+from playwright.sync_api import sync_playwright
 
 class TikTokUploadAgent:
     def __init__(self):
@@ -17,35 +17,59 @@ class TikTokUploadAgent:
         return f"{title} {tags}"
 
     def upload_to_tiktok(self, video_path, metadata):
-        print("Agent 5 (TikTok): Starting tiktok-uploader...")
+        print("Agent 5 (TikTok): Starting Playwright uploader...")
         if not os.path.exists(self.state_file):
             raise Exception(f"Auth state file not found: {self.state_file}. Please run save_tiktok_cookies.py first.")
+        
+        abs_video_path = os.path.abspath(video_path)
+        if not os.path.exists(abs_video_path):
+            raise Exception(f"Video file not found: {abs_video_path}")
 
         try:
-            with open(self.state_file, "r") as f:
-                cookies_list = json.load(f)
+            with sync_playwright() as p:
+                # Use headless=True for GitHub Actions compatibility
+                browser = p.chromium.launch(headless=True)
+                context = browser.new_context(storage_state=self.state_file)
+                page = context.new_page()
+                
+                print("Agent 5 (TikTok): Navigating to upload page...")
+                page.goto("https://www.tiktok.com/creator-center/upload")
+                
+                print("Agent 5 (TikTok): Waiting for file input...")
+                file_input = page.locator('input[type="file"][accept*="video"]')
+                file_input.wait_for(state="attached", timeout=60000)
+                file_input.set_input_files(abs_video_path)
+                
+                print("Agent 5 (TikTok): Waiting for caption editor...")
+                caption_editor = page.locator('.public-DraftEditor-content')
+                caption_editor.wait_for(state="visible", timeout=90000)
+                
+                print("Agent 5 (TikTok): Typing metadata...")
+                caption_editor.click()
+                page.keyboard.press("Control+A")
+                page.keyboard.press("Backspace")
+                page.keyboard.type(metadata, delay=50)
+                
+                time.sleep(3)
+                
+                print("Agent 5 (TikTok): Clicking Post...")
+                # Note: TikTok might have multiple buttons with 'Post', we rely on Playwright to pick the visible one.
+                post_button = page.locator('button:has-text("Post")')
+                post_button.click()
+                
+                print("Agent 5 (TikTok): Waiting for upload to complete...")
+                time.sleep(15)
+                
+                browser.close()
 
-            # tiktok-uploader uses headless=False by default to avoid bot detection
-            failed_videos = upload_video(
-                filename=video_path,
-                description=metadata,
-                cookies_list=cookies_list,
-                headless=False,
-                browser="chromium"
-            )
-
-            if failed_videos:
-                print(f"Agent 5 (TikTok): tiktok-uploader failed for videos: {failed_videos}")
-                raise Exception("tiktok-uploader reported failure.")
-            
-            print("Agent 5 (TikTok): Video successfully posted via tiktok-uploader!")
+            print("Agent 5 (TikTok): Video successfully posted via Playwright!")
             return "https://www.tiktok.com/@kidobumnurseryrhymes"
             
         except Exception as e:
-            print(f"Agent 5 (TikTok): tiktok-uploader error: {e}")
+            print(f"Agent 5 (TikTok): Playwright upload error: {e}")
             raise e
 
-    def process(self, video_path):
+    def process(self, video_path, video_name=None):
         try:
             metadata = self.generate_metadata(video_path)
             video_url = self.upload_to_tiktok(video_path, metadata)
