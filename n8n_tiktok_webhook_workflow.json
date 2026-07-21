@@ -1,0 +1,89 @@
+{
+  "name": "TikTok Webhook Receiver",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "tiktok-upload-webhook",
+        "options": {}
+      },
+      "id": "webhook-node-1234",
+      "name": "Webhook (Receive Video)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        250,
+        300
+      ],
+      "webhookId": "tiktok-upload-webhook"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://app.ayrshare.com/api/post",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer YOUR_AYRSHARE_API_KEY"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"post\": \"{{ $json.body.metadata }}\",\n  \"platforms\": [\"tiktok\"],\n  \"mediaUrls\": [\"https://your-public-url.com/path-to-video\"]\n}",
+        "options": {}
+      },
+      "id": "ayrshare-node-5678",
+      "name": "HTTP Request (Ayrshare API)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        500,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "command": "python path/to/your/agent5_tiktok_playwright.py"
+      },
+      "id": "execute-node-9012",
+      "name": "Execute Command (Alternative to Ayrshare)",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        500,
+        500
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook (Receive Video)": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request (Ayrshare API)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Execute Command (Alternative to Ayrshare)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "c4d5e6f7-g8h9-i0j1-k2l3-m4n5o6p7q8r9"
+}
