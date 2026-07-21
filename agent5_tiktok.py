@@ -36,11 +36,54 @@ class TikTokUploadAgent:
                 raise Exception("Missing TikTok auth secret (TIKTOK_AUTH_STATE or TIKTOK_AUTH_STATE_B64) and local tiktok_auth_state.json not found.")
 
     def generate_metadata(self, video_path):
-        print(f"Agent 5 (TikTok): Generating SEO Metadata for '{video_path}'...")
-        time.sleep(1.5)
-        title = "Learn Shapes with KidoBum! 🔵🟦🔺"
-        tags = "#kidobum #kidslearning #shapes #nurseryrhymes #education #toddlers"
-        return f"{title} {tags}"
+        import openai
+        video_name = os.path.basename(video_path)
+        print(f"Agent 5 (TikTok): Generating SEO Metadata using OpenAI LLM for video '{video_name}'...")
+        llm_api_key = os.environ.get('LLM_API_KEY')
+        
+        if not llm_api_key:
+            print("Warning: LLM_API_KEY not found. Using fallback TikTok metadata.")
+            fallback_title = f"Fun Learning with KidoBum: {os.path.splitext(video_name)[0]}! ✨"
+            fallback_tags = "#kidobum #kidslearning #education #toddlers #fun"
+            return f"{fallback_title} {fallback_tags}"
+
+        try:
+            client = openai.OpenAI(
+                base_url="https://integrate.api.nvidia.com/v1",
+                api_key=llm_api_key
+            )
+            response = client.chat.completions.create(
+                model="meta/llama-3.1-70b-instruct",
+                messages=[
+                    {"role": "system", "content": "You are an expert TikTok SEO specialist for a kids channel named 'kidobum'. Focus on extremely short, engaging captions filled with relevant emojis and popular hashtags. Keep it under 150 characters. VERY IMPORTANT: You must generate completely unique content every time based strictly on the actual video file name provided."},
+                    {"role": "user", "content": f"The video file name is '{video_name}'. Read this file name, understand the specific topic of the video, and generate completely unique, brand new SEO. Do NOT use previously generated titles. Generate a JSON response with exactly 'caption' (string containing title and hashtags, keeping it under 150 characters) for a TikTok video about the exact topic inferred from the file name."}
+                ],
+                temperature=0.8,
+                top_p=1,
+                max_tokens=1024
+            )
+            content = response.choices[0].message.content
+            
+            import re
+            json_str = content
+            block_match = re.search(r'```(?:json)?\s*(.*?)\s*```', content, re.DOTALL)
+            if block_match:
+                json_str = block_match.group(1)
+            else:
+                brace_match = re.search(r'\{.*\}', content, re.DOTALL)
+                if brace_match:
+                    json_str = brace_match.group(0)
+            
+            data = json.loads(json_str)
+            caption = data.get("caption", "")
+            if caption:
+                return caption
+        except Exception as e:
+            print(f"Agent 5 (TikTok): LLM metadata generation failed: {e}. Using fallback.")
+            
+        fallback_title = f"Fun Learning with KidoBum: {os.path.splitext(video_name)[0]}! ✨"
+        fallback_tags = "#kidobum #kidslearning #education #toddlers #fun"
+        return f"{fallback_title} {fallback_tags}"
 
     def dismiss_overlays(self, page, suffix=""):
         print(f"Agent 5 (TikTok): Checking for overlays/modals to dismiss ({suffix})...")
@@ -184,7 +227,7 @@ class TikTokUploadAgent:
         try:
             metadata = self.generate_metadata(video_path)
             video_url = self.upload_to_tiktok(video_path, metadata)
-            return {"platform": "TikTok", "url": video_url, "status": "Success"}
+            return {"platform": "TikTok", "url": video_url, "status": "success"}
         except Exception as e:
             print(f"Agent 5 (TikTok): Error during processing: {e}")
             return {"status": "error", "error": str(e)}
