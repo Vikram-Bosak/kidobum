@@ -137,8 +137,19 @@ class TikTokUploadAgent:
                     print("Agent 5 (TikTok): Post button click intercepted, retrying with force=True...")
                     post_button.click(force=True)
                 
-                time.sleep(2)
+                time.sleep(3)
                 page.screenshot(path="3_after_post_click.png")
+
+                # Handle the "Continue to post?" copyright check modal
+                try:
+                    post_now_btn = page.locator('button:has-text("Post now"), button.Button__root:has-text("Post now")')
+                    if post_now_btn.count() > 0:
+                        print("Agent 5 (TikTok): Found 'Continue to post?' warning. Clicking 'Post now'...")
+                        post_now_btn.first.click(force=True)
+                        time.sleep(2)
+                        page.screenshot(path="3_after_post_now_click.png")
+                except Exception as e:
+                    print(f"Agent 5 (TikTok): Error clicking 'Post now': {e}")
 
                 print("Agent 5 (TikTok): Waiting for upload to complete and redirect to content manager...")
                 try:
