@@ -31,10 +31,20 @@ def main():
         # Agent 1: Fetch and verify the video
         video_path, video_name, video_id = agent1.process()
         
-        # YouTube & Facebook Upload (Temporarily Disabled for TikTok Testing)
-        print("YouTube & Facebook uploads are temporarily disabled.")
-        yt_result = {"status": "disabled", "url": "N/A", "metadata": {"title": "N/A", "description": "N/A"}}
-        fb_result = {"status": "disabled", "url": "N/A", "metadata": {"caption": "N/A"}}
+        # Simulate user preparing to upload
+        human_delay(1, 3, "Preparing to upload on YouTube")
+        
+        # Agent 2: YouTube Upload
+        yt_result = agent2.process(video_path, video_name)
+        
+        # Simulate user taking a break / switching tabs
+        human_delay(2, 5, "Switching to Facebook")
+        
+        # Agent 3: Facebook Upload
+        fb_result = agent3.process(video_path, video_name)
+        
+        # Simulate user taking a break / switching tabs
+        human_delay(1.5, 3.5, "Switching to TikTok")
         
         # Agent 5: TikTok Upload
         tiktok_result = agent5.process(video_path, video_name)
