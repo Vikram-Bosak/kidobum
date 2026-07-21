@@ -1,0 +1,41 @@
+name: KidoBum 24x7 Auto Upload
+
+on:
+  schedule:
+    # Runs every day at 12:00 UTC
+    - cron: '0 12 * * *'
+  workflow_dispatch: # Allows manual triggering from GitHub UI
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt || pip install requests openai google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client python-dotenv playwright
+          playwright install chromium
+          playwright install-deps
+
+      - name: Create secret files from GitHub Secrets
+        run: |
+          echo '${{ secrets.GOOGLE_DRIVE_CREDENTIALS }}' > client_secret.json
+          echo '${{ secrets.YOUTUBE_TOKEN }}' > youtube_token.json
+          echo '${{ secrets.TIKTOK_AUTH_STATE }}' > tiktok_auth_state.json
+
+      - name: Run Automation Bot
+        env:
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+          GOOGLE_DRIVE_CREDENTIALS: ${{ secrets.GOOGLE_DRIVE_CREDENTIALS }}
+          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
+          FACEBOOK_PAGE_ACCESS_TOKEN: ${{ secrets.FACEBOOK_PAGE_ACCESS_TOKEN }}
+          FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
+        run: python main.py
