@@ -6,7 +6,7 @@ class ReportAgent:
     def __init__(self):
         self.discord_webhook = os.environ.get('DISCORD_WEBHOOK_URL')
 
-    def send_report(self, yt_result, fb_result, video_name):
+    def send_report(self, yt_result, fb_result, tiktok_result, video_name):
         print("Agent 4 (Reporter): Sending final report to Discord...")
         if not self.discord_webhook:
             print("Agent 4 (Reporter): Discord Webhook URL not configured. Skipping.")
@@ -14,6 +14,7 @@ class ReportAgent:
 
         yt_status = "Success" if yt_result.get('status') == 'success' else f"Failed ({yt_result.get('error')})"
         fb_status = "Success" if fb_result.get('status') == 'success' else f"Failed ({fb_result.get('error')})"
+        tiktok_status = "Success" if tiktok_result.get('status') == 'success' else f"Failed ({tiktok_result.get('error')})"
         
         yt_title = yt_result.get('metadata', {}).get('title', 'N/A')
         # Prefer FB caption for the description block as it typically contains emojis/hashtags 
@@ -21,6 +22,7 @@ class ReportAgent:
         
         fb_url = fb_result.get('url', 'N/A')
         yt_url = yt_result.get('url', 'N/A')
+        tiktok_url = tiktok_result.get('url', 'N/A')
         
         repo = os.environ.get('GITHUB_REPOSITORY', 'Vikram-Bosak/kidobum')
         run_id = os.environ.get('GITHUB_RUN_ID', 'unknown')
@@ -37,6 +39,7 @@ class ReportAgent:
 
 📤 Facebook Upload Status: {fb_status}
 📤 YouTube Upload Status: {yt_status}
+📤 TikTok Upload Status: {tiktok_status}
 
 🏷️ SEO Title:
 {yt_title}
@@ -51,6 +54,9 @@ Original File: {video_name}
 
 ▶️ YouTube Video URL:
 {yt_url}
+
+🎵 TikTok Video URL:
+{tiktok_url}
 
 📦 GitHub Repository:
 https://github.com/Vikram-Bosak/kidobum

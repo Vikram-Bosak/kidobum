@@ -6,6 +6,7 @@ from agent1_fetcher import ContentManagerAgent
 from agent2_youtube import YouTubeUploadAgent
 from agent3_facebook import FacebookUploadAgent
 from agent4_reporter import ReportAgent
+from agent5_tiktok import TikTokUploadAgent
 
 load_dotenv()
 
@@ -22,6 +23,7 @@ def main():
     agent2 = YouTubeUploadAgent()
     agent3 = FacebookUploadAgent()
     agent4 = ReportAgent()
+    agent5 = TikTokUploadAgent()
 
     video_path = None
 
@@ -41,14 +43,20 @@ def main():
         # Agent 3: Facebook Upload
         fb_result = agent3.process(video_path, video_name)
         
+        # Simulate user taking a break / switching tabs
+        human_delay(1.5, 3.5, "Switching to TikTok")
+        
+        # Agent 5: TikTok Upload
+        tiktok_result = agent5.process(video_path, video_name)
+        
         # Simulate final checks
         human_delay(0.5, 1.5, "Finalizing and writing report")
         
         # Agent 4: Report
-        agent4.send_report(yt_result, fb_result, video_name)
+        agent4.send_report(yt_result, fb_result, tiktok_result, video_name)
         
         # Move video to Uploaded folder if at least one upload succeeded
-        if yt_result.get('status') == 'success' or fb_result.get('status') == 'success':
+        if yt_result.get('status') == 'success' or fb_result.get('status') == 'success' or tiktok_result.get('status') == 'success':
             agent1.mark_as_uploaded(video_id)
         
         print("Workflow completed successfully.")
