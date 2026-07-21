@@ -93,9 +93,23 @@ class TikTokUploadAgent:
                 
                 time.sleep(3)
                 
+                # Dismiss any modals that might have popped up after typing (like copyright checks)
+                try:
+                    modal_buttons = page.locator('button:has-text("Got it"), button:has-text("Okay"), button:has-text("OK"), [class*="tux-btn"]:has-text("Got it")')
+                    if modal_buttons.count() > 0:
+                        print("Agent 5 (TikTok): Found modal overlay before posting, attempting to dismiss...")
+                        modal_buttons.first.click(timeout=5000)
+                        time.sleep(1)
+                except Exception as modal_err:
+                    print(f"Agent 5 (TikTok): Did not dismiss modal before posting: {modal_err}")
+
                 print("Agent 5 (TikTok): Clicking Post...")
                 post_button = page.locator('button[data-e2e="post_video_button"]')
-                post_button.click()
+                try:
+                    post_button.click(timeout=10000)
+                except Exception:
+                    print("Agent 5 (TikTok): Post button click intercepted, retrying with force=True...")
+                    post_button.click(force=True)
                 
                 print("Agent 5 (TikTok): Waiting for upload to complete...")
                 time.sleep(15)
