@@ -94,7 +94,7 @@ class TikTokUploadAgent:
                 time.sleep(3)
                 
                 print("Agent 5 (TikTok): Clicking Post...")
-                post_button = page.locator('button:has-text("Post")')
+                post_button = page.locator('button[data-e2e="post_video_button"]')
                 post_button.click()
                 
                 print("Agent 5 (TikTok): Waiting for upload to complete...")
