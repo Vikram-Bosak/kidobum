@@ -42,6 +42,43 @@ class TikTokUploadAgent:
         tags = "#kidobum #kidslearning #shapes #nurseryrhymes #education #toddlers"
         return f"{title} {tags}"
 
+    def dismiss_overlays(self, page, suffix=""):
+        print(f"Agent 5 (TikTok): Checking for overlays/modals to dismiss ({suffix})...")
+        
+        # 1. Target "Turn on" button specifically
+        try:
+            turn_on = page.locator('button:has-text("Turn on")')
+            if turn_on.count() > 0:
+                print("Agent 5 (TikTok): Found 'Turn on' modal button. Clicking...")
+                turn_on.first.click(force=True)
+                time.sleep(2)
+                page.screenshot(path=f"dismiss_turn_on_{suffix}.png")
+        except Exception as e:
+            print(f"Agent 5 (TikTok): Error clicking 'Turn on': {e}")
+            
+        # 2. Target "Cancel" button specifically
+        try:
+            cancel = page.locator('button:has-text("Cancel")')
+            if cancel.count() > 0:
+                print("Agent 5 (TikTok): Found 'Cancel' modal button. Clicking...")
+                cancel.first.click(force=True)
+                time.sleep(2)
+                page.screenshot(path=f"dismiss_cancel_{suffix}.png")
+        except Exception as e:
+            print(f"Agent 5 (TikTok): Error clicking 'Cancel': {e}")
+
+        # 3. Target "Got it" tooltips
+        try:
+            got_it_buttons = page.locator('button:has-text("Got it")')
+            count = got_it_buttons.count()
+            for idx in range(count):
+                print(f"Agent 5 (TikTok): Found 'Got it' tooltip button {idx+1}/{count}. Clicking...")
+                got_it_buttons.nth(idx).click(force=True)
+                time.sleep(1.5)
+                page.screenshot(path=f"dismiss_got_it_{idx+1}_{suffix}.png")
+        except Exception as e:
+            print(f"Agent 5 (TikTok): Error clicking 'Got it': {e}")
+
     def upload_to_tiktok(self, video_path, metadata):
         print("Agent 5 (TikTok): Starting Playwright uploader...")
         if not os.path.exists(self.state_file):
@@ -72,20 +109,8 @@ class TikTokUploadAgent:
                 
                 page.screenshot(path="1_before_typing.png")
 
-                # Dismiss any popup modals (like copyright checks, HD notifications, or tutorials)
-                for i in range(3):
-                    try:
-                        modal_buttons = page.locator('button:has-text("Got it"), button:has-text("Okay"), button:has-text("OK"), button:has-text("Turn on"), button:has-text("Cancel"), [class*="tux-btn"]:has-text("Got it")')
-                        if modal_buttons.count() > 0:
-                            print(f"Agent 5 (TikTok): Found modal overlay (attempt {i+1}), attempting to dismiss...")
-                            modal_buttons.first.click(force=True)
-                            time.sleep(2)
-                            page.screenshot(path=f"1_after_modal_dismiss_{i+1}.png")
-                        else:
-                            break
-                    except Exception as modal_err:
-                        print(f"Agent 5 (TikTok): Did not dismiss modal: {modal_err}")
-                        break
+                # Dismiss overlays before typing
+                self.dismiss_overlays(page, "before_typing")
 
                 print("Agent 5 (TikTok): Typing metadata...")
                 try:
@@ -101,20 +126,8 @@ class TikTokUploadAgent:
                 time.sleep(3)
                 page.screenshot(path="2_after_typing.png")
                 
-                # Dismiss any modals that might have popped up after typing (like copyright checks)
-                for i in range(3):
-                    try:
-                        modal_buttons = page.locator('button:has-text("Got it"), button:has-text("Okay"), button:has-text("OK"), button:has-text("Turn on"), button:has-text("Cancel"), [class*="tux-btn"]:has-text("Got it")')
-                        if modal_buttons.count() > 0:
-                            print(f"Agent 5 (TikTok): Found modal overlay before posting (attempt {i+1}), attempting to dismiss...")
-                            modal_buttons.first.click(force=True)
-                            time.sleep(2)
-                            page.screenshot(path=f"2_after_modal_dismiss_{i+1}.png")
-                        else:
-                            break
-                    except Exception as modal_err:
-                        print(f"Agent 5 (TikTok): Did not dismiss modal before posting: {modal_err}")
-                        break
+                # Dismiss overlays after typing / before posting
+                self.dismiss_overlays(page, "before_posting")
 
                 print("Agent 5 (TikTok): Clicking Post...")
                 post_button = page.locator('button[data-e2e="post_video_button"]')
