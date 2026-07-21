@@ -2,10 +2,8 @@ name: kidobum agent
 
 on:
   schedule:
-    # Runs at 12:00 UTC (5:30 PM IST)
+    # Runs once daily at 12:00 UTC (5:30 PM IST)
     - cron: '0 12 * * *'
-    # Runs at 21:00 UTC (2:30 AM IST - US High Peak Time)
-    - cron: '0 21 * * *'
   workflow_dispatch: # Allows manual triggering from GitHub UI
 
 jobs:
