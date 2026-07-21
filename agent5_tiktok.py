@@ -204,11 +204,28 @@ class TikTokUploadAgent:
                     print(f"Agent 5 (TikTok): Error clicking 'Post now': {e}")
 
                 print("Agent 5 (TikTok): Waiting for upload to complete and redirect to content manager...")
+                video_url = "https://www.tiktok.com/@kidobumnurseryrhymes" # Default profile fallback
                 try:
                     # After successful post, TikTok redirects to /creator-center/content or shows success toast
                     page.wait_for_url("**/creator-center/content**", timeout=45000)
                     print("Agent 5 (TikTok): Successfully redirected to content manager. Upload confirmed!")
                     page.screenshot(path="4_after_redirect.png")
+                    
+                    # Wait for 5 seconds for the list to load and render the video link
+                    time.sleep(5)
+                    try:
+                        # Find the first link that points to a video
+                        video_link_selector = 'a[href*="/video/"]'
+                        page.wait_for_selector(video_link_selector, timeout=10000)
+                        extracted_url = page.locator(video_link_selector).first.get_attribute("href")
+                        if extracted_url:
+                            if not extracted_url.startswith("http"):
+                                video_url = "https://www.tiktok.com" + extracted_url
+                            else:
+                                video_url = extracted_url
+                            print(f"Agent 5 (TikTok): Extracted uploaded video URL: {video_url}")
+                    except Exception as extract_err:
+                        print(f"Agent 5 (TikTok): Could not extract video URL, using profile fallback: {extract_err}")
                 except Exception:
                     print("Agent 5 (TikTok): Did not detect redirect, waiting 30 seconds extra to be safe...")
                     time.sleep(30)
@@ -217,7 +234,7 @@ class TikTokUploadAgent:
                 browser.close()
 
             print("Agent 5 (TikTok): Video successfully posted via Playwright!")
-            return "https://www.tiktok.com/@kidobumnurseryrhymes"
+            return video_url
             
         except Exception as e:
             print(f"Agent 5 (TikTok): Playwright upload error: {e}")
