@@ -75,7 +75,7 @@ class TikTokUploadAgent:
                     modal_buttons = page.locator('button:has-text("Got it"), button:has-text("Okay"), button:has-text("OK"), [class*="tux-btn"]:has-text("Got it")')
                     if modal_buttons.count() > 0:
                         print("Agent 5 (TikTok): Found modal overlay, attempting to dismiss...")
-                        modal_buttons.first.click(timeout=5000)
+                        modal_buttons.first.click(force=True)
                         time.sleep(1)
                 except Exception as modal_err:
                     print(f"Agent 5 (TikTok): Did not dismiss modal: {modal_err}")
@@ -98,7 +98,7 @@ class TikTokUploadAgent:
                     modal_buttons = page.locator('button:has-text("Got it"), button:has-text("Okay"), button:has-text("OK"), [class*="tux-btn"]:has-text("Got it")')
                     if modal_buttons.count() > 0:
                         print("Agent 5 (TikTok): Found modal overlay before posting, attempting to dismiss...")
-                        modal_buttons.first.click(timeout=5000)
+                        modal_buttons.first.click(force=True)
                         time.sleep(1)
                 except Exception as modal_err:
                     print(f"Agent 5 (TikTok): Did not dismiss modal before posting: {modal_err}")
@@ -111,8 +111,14 @@ class TikTokUploadAgent:
                     print("Agent 5 (TikTok): Post button click intercepted, retrying with force=True...")
                     post_button.click(force=True)
                 
-                print("Agent 5 (TikTok): Waiting for upload to complete...")
-                time.sleep(15)
+                print("Agent 5 (TikTok): Waiting for upload to complete and redirect to content manager...")
+                try:
+                    # After successful post, TikTok redirects to /creator-center/content or shows success toast
+                    page.wait_for_url("**/creator-center/content**", timeout=45000)
+                    print("Agent 5 (TikTok): Successfully redirected to content manager. Upload confirmed!")
+                except Exception:
+                    print("Agent 5 (TikTok): Did not detect redirect, waiting 30 seconds extra to be safe...")
+                    time.sleep(30)
                 
                 browser.close()
 
