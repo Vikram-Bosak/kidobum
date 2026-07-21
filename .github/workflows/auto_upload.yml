@@ -1,4 +1,4 @@
-name: KidoBum 24x7 Auto Upload
+name: kidobum agent
 
 on:
   schedule:
