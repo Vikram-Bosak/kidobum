@@ -206,16 +206,16 @@ class TikTokUploadAgent:
                 print("Agent 5 (TikTok): Waiting for upload to complete and redirect to content manager...")
                 video_url = "https://www.tiktok.com/@kidobumnurseryrhymes" # Default profile fallback
                 try:
-                    # After successful post, TikTok redirects to creator center pages
-                    page.wait_for_url("**/creator-center/**", timeout=55000)
-                    print("Agent 5 (TikTok): Successfully redirected to creator center. Upload confirmed!")
+                    # After successful post, TikTok redirects to creator center or tiktok studio pages
+                    page.wait_for_url(lambda url: "creator-center" in url or "tiktokstudio" in url, timeout=55000)
+                    print(f"Agent 5 (TikTok): Successfully redirected to content manager ({page.url}). Upload confirmed!")
                     page.screenshot(path="4_after_redirect.png")
                 except Exception:
-                    print("Agent 5 (TikTok): Did not detect redirect URL pattern, checking current page state...")
+                    print(f"Agent 5 (TikTok): Did not detect redirect URL pattern (current URL: {page.url}), checking page state...")
                     page.screenshot(path="4_no_redirect_fallback.png")
                 
-                # Attempt to extract video URL if we are on a creator center page
-                if "creator-center" in page.url:
+                # Attempt to extract video URL if we are on creator center or tiktok studio page
+                if "creator-center" in page.url or "tiktokstudio" in page.url:
                     time.sleep(5) # Wait for list rendering
                     try:
                         # Find the first link that points to a video
