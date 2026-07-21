@@ -103,6 +103,15 @@ class TikTokUploadAgent:
                 file_input.wait_for(state="attached", timeout=60000)
                 file_input.set_input_files(abs_video_path)
                 
+                print("Agent 5 (TikTok): Waiting for video file upload to reach 100%...")
+                try:
+                    # Wait for green status indicating upload completed (looks for text containing "Uploaded")
+                    uploaded_locator = page.locator('text="Uploaded"')
+                    uploaded_locator.wait_for(state="visible", timeout=120000)
+                    print("Agent 5 (TikTok): Video file upload completed successfully!")
+                except Exception as upload_err:
+                    print(f"Agent 5 (TikTok): Warning - upload completion indicator not found, continuing anyway: {upload_err}")
+                
                 print("Agent 5 (TikTok): Waiting for caption editor...")
                 caption_editor = page.locator('.public-DraftEditor-content')
                 caption_editor.wait_for(state="visible", timeout=90000)
