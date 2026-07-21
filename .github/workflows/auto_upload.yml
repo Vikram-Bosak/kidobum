@@ -43,3 +43,12 @@ jobs:
           TIKTOK_AUTH_STATE: ${{ secrets.TIKTOK_AUTH_STATE }}
           TIKTOK_AUTH_STATE_B64: ${{ secrets.TIKTOK_AUTH_STATE_B64 }}
         run: python main.py
+
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-screenshots
+          path: |
+            *.png
+            *.jpg

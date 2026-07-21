@@ -70,13 +70,16 @@ class TikTokUploadAgent:
                 caption_editor = page.locator('.public-DraftEditor-content')
                 caption_editor.wait_for(state="visible", timeout=90000)
                 
+                page.screenshot(path="1_before_typing.png")
+
                 # Try to dismiss any popup modals (like copyright checks or tutorials)
                 try:
                     modal_buttons = page.locator('button:has-text("Got it"), button:has-text("Okay"), button:has-text("OK"), [class*="tux-btn"]:has-text("Got it")')
                     if modal_buttons.count() > 0:
                         print("Agent 5 (TikTok): Found modal overlay, attempting to dismiss...")
                         modal_buttons.first.click(force=True)
-                        time.sleep(1)
+                        time.sleep(2)
+                        page.screenshot(path="1_after_modal_dismiss.png")
                 except Exception as modal_err:
                     print(f"Agent 5 (TikTok): Did not dismiss modal: {modal_err}")
 
@@ -92,6 +95,7 @@ class TikTokUploadAgent:
                 page.keyboard.type(metadata, delay=50)
                 
                 time.sleep(3)
+                page.screenshot(path="2_after_typing.png")
                 
                 # Dismiss any modals that might have popped up after typing (like copyright checks)
                 try:
@@ -99,7 +103,8 @@ class TikTokUploadAgent:
                     if modal_buttons.count() > 0:
                         print("Agent 5 (TikTok): Found modal overlay before posting, attempting to dismiss...")
                         modal_buttons.first.click(force=True)
-                        time.sleep(1)
+                        time.sleep(2)
+                        page.screenshot(path="2_after_modal_dismiss.png")
                 except Exception as modal_err:
                     print(f"Agent 5 (TikTok): Did not dismiss modal before posting: {modal_err}")
 
@@ -111,14 +116,19 @@ class TikTokUploadAgent:
                     print("Agent 5 (TikTok): Post button click intercepted, retrying with force=True...")
                     post_button.click(force=True)
                 
+                time.sleep(2)
+                page.screenshot(path="3_after_post_click.png")
+
                 print("Agent 5 (TikTok): Waiting for upload to complete and redirect to content manager...")
                 try:
                     # After successful post, TikTok redirects to /creator-center/content or shows success toast
                     page.wait_for_url("**/creator-center/content**", timeout=45000)
                     print("Agent 5 (TikTok): Successfully redirected to content manager. Upload confirmed!")
+                    page.screenshot(path="4_after_redirect.png")
                 except Exception:
                     print("Agent 5 (TikTok): Did not detect redirect, waiting 30 seconds extra to be safe...")
                     time.sleep(30)
+                    page.screenshot(path="4_no_redirect_fallback.png")
                 
                 browser.close()
 
