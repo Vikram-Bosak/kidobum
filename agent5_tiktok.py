@@ -70,8 +70,23 @@ class TikTokUploadAgent:
                 caption_editor = page.locator('.public-DraftEditor-content')
                 caption_editor.wait_for(state="visible", timeout=90000)
                 
+                # Try to dismiss any popup modals (like copyright checks or tutorials)
+                try:
+                    modal_buttons = page.locator('button:has-text("Got it"), button:has-text("Okay"), button:has-text("OK"), [class*="tux-btn"]:has-text("Got it")')
+                    if modal_buttons.count() > 0:
+                        print("Agent 5 (TikTok): Found modal overlay, attempting to dismiss...")
+                        modal_buttons.first.click(timeout=5000)
+                        time.sleep(1)
+                except Exception as modal_err:
+                    print(f"Agent 5 (TikTok): Did not dismiss modal: {modal_err}")
+
                 print("Agent 5 (TikTok): Typing metadata...")
-                caption_editor.click()
+                try:
+                    caption_editor.click(timeout=10000)
+                except Exception:
+                    print("Agent 5 (TikTok): Caption editor click intercepted, retrying with force=True...")
+                    caption_editor.click(force=True)
+                
                 page.keyboard.press("Control+A")
                 page.keyboard.press("Backspace")
                 page.keyboard.type(metadata, delay=50)
