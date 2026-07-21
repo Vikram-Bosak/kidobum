@@ -3,10 +3,37 @@ import json
 import time
 from playwright.sync_api import sync_playwright
 
+import base64
+
 class TikTokUploadAgent:
     def __init__(self):
-        # We will use the json state file that contains the cookies list
-        self.state_file = os.path.join(os.path.dirname(__file__), "tiktok_auth_state.json")
+        # We try to get the TikTok auth state from environment variables first (as injected in GitHub Actions)
+        raw_secret = os.getenv('TIKTOK_AUTH_STATE')
+        b64_secret = os.getenv('TIKTOK_AUTH_STATE_B64')
+        
+        self.state_file = os.path.join(os.path.dirname(__file__), "tiktok_auth_state_tmp.json")
+        
+        if raw_secret or b64_secret:
+            if b64_secret:
+                try:
+                    raw_secret = base64.b64decode(b64_secret).decode('utf-8')
+                except Exception as e:
+                    print(f"Agent 5 (TikTok): Warning - Failed to decode TIKTOK_AUTH_STATE_B64: {e}")
+            
+            try:
+                # Validate it's correct JSON
+                parsed = json.loads(raw_secret)
+                with open(self.state_file, "w", encoding="utf-8") as f:
+                    json.dump(parsed, f, ensure_ascii=False, indent=2)
+            except Exception as e:
+                raise Exception(f"Agent 5 (TikTok): TIKTOK_AUTH_STATE contains invalid JSON: {e}")
+        else:
+            # Fall back to local file if no env var is set (for local development)
+            local_state = os.path.join(os.path.dirname(__file__), "tiktok_auth_state.json")
+            if os.path.exists(local_state):
+                self.state_file = local_state
+            else:
+                raise Exception("Missing TikTok auth secret (TIKTOK_AUTH_STATE or TIKTOK_AUTH_STATE_B64) and local tiktok_auth_state.json not found.")
 
     def generate_metadata(self, video_path):
         print(f"Agent 5 (TikTok): Generating SEO Metadata for '{video_path}'...")

@@ -2,8 +2,10 @@ name: KidoBum 24x7 Auto Upload
 
 on:
   schedule:
-    # Runs every day at 12:00 UTC
+    # Runs at 12:00 UTC (5:30 PM IST)
     - cron: '0 12 * * *'
+    # Runs at 21:00 UTC (2:30 AM IST - US High Peak Time)
+    - cron: '0 21 * * *'
   workflow_dispatch: # Allows manual triggering from GitHub UI
 
 jobs:
@@ -29,7 +31,6 @@ jobs:
         run: |
           echo '${{ secrets.GOOGLE_DRIVE_CREDENTIALS }}' > client_secret.json
           echo '${{ secrets.YOUTUBE_TOKEN }}' > youtube_token.json
-          echo '${{ secrets.TIKTOK_AUTH_STATE }}' > tiktok_auth_state.json
 
       - name: Run Automation Bot
         env:
@@ -38,4 +39,7 @@ jobs:
           YOUTUBE_CLIENT_SECRETS: ${{ secrets.YOUTUBE_CLIENT_SECRETS }}
           FACEBOOK_ACCESS_TOKEN: ${{ secrets.FACEBOOK_ACCESS_TOKEN }}
           FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          TIKTOK_AUTH_STATE: ${{ secrets.TIKTOK_AUTH_STATE }}
+          TIKTOK_AUTH_STATE_B64: ${{ secrets.TIKTOK_AUTH_STATE_B64 }}
         run: python main.py
